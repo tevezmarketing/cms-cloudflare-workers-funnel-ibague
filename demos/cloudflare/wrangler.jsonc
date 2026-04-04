@@ -28,7 +28,14 @@
 			"bucket_name": "emdash-media",
 		},
 	],
-	// Observability
+"kv_namespaces": [
+    {
+        "binding": "SESSION",
+        "id": "a9a00ff522d74a72a639d2dffda04dcb"
+    }
+],	
+
+// Observability
 	"observability": {
 		"enabled": true,
 	},
