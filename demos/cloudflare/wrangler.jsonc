@@ -1,34 +1,24 @@
-
-		{
-			"pattern": "demo.emdashcms.com",
-			"zone_name": "demo.emdashcms.com",
-			"custom_domain": true,
-		},
-	],
-	// D1 Database binding
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "emdash_db",
-		},
-	],
-	// R2 bucket for media storage
-	"r2_buckets": [
-		{
-			"binding": "MEDIA",
-			"bucket_name": "emdash-media",
-		},
-	],
-"kv_namespaces": [
+{
+  "name": "my-emdash-site",
+  "compatibility_date": "2026-04-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
     {
-        "binding": "SESSION",
-        "id": "a9a00ff522d74a72a639d2dffda04dcb"
+      "binding": "DB",
+      "database_name": "my-emdash-site",
+      "database_id": "REEMPLAZA_CON_TU_D1_ID"
     }
-],	
-
-// Observability
-	"observability": {
-		"enabled": true,
-	},
-
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "my-emdash-media"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "a9a00ff522d74a72a639d2dffda04dcb"
+    }
+  ]
 }
