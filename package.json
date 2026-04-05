@@ -3,7 +3,28 @@
 	"private": true,
 	"type": "module",
 	"version": "1.0.0",
-	"description": "Agent-portable reimplementation of WordPress on Astro",
+	"description": "CMS headless full-stack sobre Astro y Cloudflare Workers — alternativa moderna a WordPress con plugins sandboxeados y arquitectura Jamstack",
+	"homepage": "https://tevezmarketing.digital",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tevezmarketing/cms-cloudflare-workers-funnel-ibague"
+	},
+	"author": {
+		"name": "Tevez Marketing Digital",
+		"url": "https://tevezmarketing.digital"
+	},
+	"keywords": [
+		"cms",
+		"headless-cms",
+		"astro",
+		"cloudflare-workers",
+		"typescript",
+		"jamstack",
+		"wordpress-alternative",
+		"serverless",
+		"marketing-digital",
+		"colombia"
+	],
 	"scripts": {
 		"typecheck": "pnpm run --filter {./packages/**} typecheck",
 		"typecheck:demos": "pnpm run --workspace-concurrency=1 --filter {./demos/*} --filter !@emdash-cms/demo-cloudflare typecheck",
@@ -26,8 +47,6 @@
 		"new": "create-emdash",
 		"screenshots": "node scripts/screenshot-all-templates.mjs"
 	},
-	"keywords": [],
-	"author": "Matt Kane",
 	"license": "MIT",
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.1",
