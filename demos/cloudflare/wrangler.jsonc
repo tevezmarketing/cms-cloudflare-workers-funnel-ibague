@@ -6,7 +6,7 @@
     {
       "binding": "DB",
       "database_name": "my-emdash-site",
-      "database_id": "REEMPLAZA_CON_TU_D1_ID"
+      "database_id": "*************"
     }
   ],
   "r2_buckets": [
