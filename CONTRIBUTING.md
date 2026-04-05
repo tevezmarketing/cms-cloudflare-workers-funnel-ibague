@@ -1,320 +1,281 @@
-# Contributing to EmDash
+# Guía de desarrollo — EmDash · tevezmarketing.digital
 
-> **Beta.** EmDash is published to npm. During development you work inside the monorepo -- packages use `workspace:*` links, so everything "just works" without publishing.
+> Fork operativo de EmDash adaptado para infraestructura CMS de **tevezmarketing.digital** — Ibagué, Colombia.  
+> Este documento reemplaza la guía de contribución upstream. Si buscas contribuir al proyecto original, ve a [emdash-cms/emdash](https://github.com/emdash-cms/emdash).
 
-## Prerequisites
+---
 
-- **Node.js** 22+
-- **pnpm** 10+ (`corepack enable` if you don't have it)
+## Antes de empezar
+
+Este monorepo tiene **dos modos de operación**. Elige el que corresponde a tu situación:
+
+| Modo | Cuándo usarlo | Costo |
+|---|---|---|
+| **Node.js + SQLite** | Desarrollo local, sitios propios, demos de clientes | Gratis |
+| **Cloudflare Workers + D1** | Producción con clientes, escala global, plugins seguros | $5/mes cuenta CF |
+
+**Si apenas estás empezando: usa el modo Node.js.** No necesitas cuenta Cloudflare ni tarjeta de crédito para tener el CMS completo funcionando.
+
+---
+
+## Requisitos
+
+- **Node.js** 22 o superior
+- **pnpm** 10 o superior — instalar con `corepack enable`
 - **Git**
 
-## Quick Setup
+---
+
+## Instalación inicial
 
 ```bash
-git clone <repo-url> && cd emdash
+git clone https://github.com/tevezmarketing/cms-cloudflare-workers-funnel-ibague.git
+cd cms-cloudflare-workers-funnel-ibague
 pnpm install
-pnpm build          # build all packages (required before first run)
+pnpm build
 ```
 
-### Run the Demo
+El `pnpm build` es obligatorio la primera vez. Compila todos los paquetes del monorepo antes de poder correr cualquier demo o template.
 
-The `demos/simple/` app is the primary development target. It is kept in sync with `templates/blog/` and uses Node.js + SQLite — no Cloudflare account needed.
+---
+
+## Modo 1 — Node.js + SQLite (sin costo)
+
+Este es el punto de partida. Corre el CMS completo localmente sin necesitar nada de Cloudflare.
 
 ```bash
-pnpm --filter emdash-demo seed   # seed sample content
-pnpm --filter emdash-demo dev    # http://localhost:4321
+pnpm --filter emdash-demo seed   # carga contenido de ejemplo
+pnpm --filter emdash-demo dev    # inicia el servidor en localhost:4321
 ```
 
-Open the admin at `http://localhost:4321/_emdash/admin`.
+Abre el panel de administración en:
 
-In dev mode, passkey auth is bypassed automatically. If you hit the login screen, visit:
+```
+http://localhost:4321/_emdash/admin
+```
+
+En modo desarrollo la autenticación por passkey se salta automáticamente. Si aparece la pantalla de login, accede directamente con:
 
 ```
 http://localhost:4321/_emdash/api/setup/dev-bypass?redirect=/_emdash/admin
 ```
 
-### Run with Cloudflare (optional)
+### Para publicar en modo Node.js sin pagar Cloudflare
 
-`demos/cloudflare/` runs on the real `workerd` runtime with D1. See its [README](demos/cloudflare/README.md) for setup.
+Puedes desplegar este modo en servidores con tier gratuito. Las opciones más simples:
 
-### Developing Templates
+- **Railway** — soporta Node.js, despliega desde GitHub automáticamente, tier gratuito disponible
+- **Render** — similar a Railway, buena integración con monorepos
+- **Fly.io** — más control, tier gratuito con límites generosos
 
-Templates in `templates/` are workspace members and can be run directly:
+En cualquiera de estos el SQLite se reemplaza por la base de datos del proveedor. Para producción real con clientes se recomienda migrar a Cloudflare D1 cuando el proyecto lo justifique.
+
+---
+
+## Modo 2 — Cloudflare Workers + D1 (producción)
+
+Requiere cuenta Cloudflare Workers Paid ($5/mes). **Una sola cuenta sirve para múltiples sitios de clientes** — el costo no es por sitio.
 
 ```bash
-# First time: set up database and seed content
-pnpm --filter @emdash-cms/template-portfolio bootstrap
+# 1. Crear la base de datos D1
+cd demos/cloudflare
+pnpm db:create
 
-# Run the dev server
-pnpm --filter @emdash-cms/template-portfolio dev
+# 2. Copiar el database_id que aparece en consola y pegarlo en wrangler.jsonc:
+# "database_id": "TU_ID_AQUI"
+
+# 3. Iniciar el servidor de desarrollo
+pnpm dev
 ```
 
-Available templates:
+Panel de administración en `http://localhost:4321/_emdash/admin`.
 
-| Template  | Filter Name                      |
-| --------- | -------------------------------- |
-| Blog      | `@emdash-cms/template-blog`      |
-| Portfolio | `@emdash-cms/template-portfolio` |
-| Marketing | `@emdash-cms/template-marketing` |
+Las migraciones de base de datos corren automáticamente al primer request — no hay paso manual.
 
-Edit files in `templates/{name}/src/` and changes hot reload.
-
-**Cloudflare variants** (`*-cloudflare`) share source with their base templates via `scripts/sync-cloudflare-templates.sh`. Run that script after editing base template shared files.
-
-Demo/template sync is handled by `scripts/sync-blog-demos.sh`:
-
-- Full sync: `templates/blog` -> `demos/simple`
-- Frontend sync (keep runtime-specific config/files):
-  - `templates/blog-cloudflare` -> `demos/cloudflare`
-  - `templates/blog-cloudflare` -> `demos/preview`
-  - `templates/blog` -> `demos/postgres`
-
-To start fresh, delete the database and re-bootstrap:
+### Para desplegar a producción
 
 ```bash
-rm templates/portfolio/data.db
-pnpm --filter @emdash-cms/template-portfolio bootstrap
+pnpm build
+pnpm deploy
 ```
 
-## Development Workflow
+Cloudflare asigna automáticamente una URL `*.workers.dev`. Puedes conectar tu dominio propio desde el dashboard de Cloudflare sin costo adicional.
 
-### Watch Mode
+---
 
-For iterating on core packages alongside the demo, run two terminals:
+## Construir un sitio de cliente dentro del monorepo
+
+La forma más rápida de empezar un sitio nuevo es usar los templates incluidos:
 
 ```bash
-# Terminal 1 — rebuild packages/core on change
+# Copiar el template que más se ajuste al proyecto
+cp -r templates/blog demos/nombre-cliente
+cp -r templates/marketing demos/nombre-cliente   # para landing pages / funnels
+cp -r templates/portfolio demos/nombre-cliente   # para portafolios y agencias
+```
+
+Luego edita `demos/nombre-cliente/package.json` y cambia el campo `name` a algo único, por ejemplo `cliente-ibague-2026`.
+
+```bash
+pnpm install   # registra el nuevo workspace
+pnpm --filter cliente-ibague-2026 dev
+```
+
+El sitio usa links `workspace:*` al código local — cualquier cambio en `packages/core` se refleja inmediatamente.
+
+### Templates disponibles
+
+| Template | Ideal para | Filter name |
+|---|---|---|
+| Blog | Sitios de contenido, SEO editorial | `@emdash-cms/template-blog` |
+| Marketing | Landing pages, funnels de conversión | `@emdash-cms/template-marketing` |
+| Portfolio | Agencias, freelancers, casos de estudio | `@emdash-cms/template-portfolio` |
+
+Para correr un template directamente:
+
+```bash
+# Primera vez: configurar base de datos y seed
+pnpm --filter @emdash-cms/template-marketing bootstrap
+
+# Iniciar desarrollo
+pnpm --filter @emdash-cms/template-marketing dev
+```
+
+Para empezar desde cero con una base de datos limpia:
+
+```bash
+rm templates/marketing/data.db
+pnpm --filter @emdash-cms/template-marketing bootstrap
+```
+
+---
+
+## Flujo de trabajo en desarrollo
+
+### Watch mode — dos terminales
+
+Cuando estás modificando el código base junto con un sitio cliente:
+
+```bash
+# Terminal 1 — recompila packages/core al guardar cambios
 pnpm --filter emdash dev
 
-# Terminal 2 — run the demo
-pnpm --filter emdash-demo dev
+# Terminal 2 — corre el sitio del cliente
+pnpm --filter nombre-cliente dev
 ```
 
-Changes to `packages/core/src/` will be picked up by the demo's dev server automatically.
+Los cambios en `packages/core/src/` se propagan automáticamente al sitio en desarrollo.
 
-### Checks
-
-Run these before committing:
+### Verificaciones antes de hacer commit
 
 ```bash
-pnpm typecheck       # TypeScript (packages)
-pnpm typecheck:demos # TypeScript (Astro demos)
-pnpm --silent lint:quick   # fast lint (< 1s) — run often
-pnpm --silent lint:json    # full type-aware lint (~10s) — run before commits
-pnpm format          # auto-format with oxfmt
+pnpm typecheck         # verificación TypeScript en todos los paquetes
+pnpm typecheck:demos   # verificación TypeScript en demos y sites de clientes
+pnpm --silent lint:quick   # linting rápido (< 1 segundo) — correr frecuentemente
+pnpm --silent lint:json    # linting completo con tipos (~10s) — correr antes de commit
+pnpm format            # formatear automáticamente con oxfmt
 ```
 
-Type checking **must** pass. Lint **must** pass. Don't commit with known failures.
+El typecheck y el lint deben pasar. No hacer commit con errores conocidos.
 
 ### Tests
 
 ```bash
-pnpm test                              # all packages
-pnpm --filter emdash test            # core only
-pnpm --filter emdash test --watch    # watch mode
-pnpm test:e2e                          # Playwright (requires demo running)
+pnpm test                           # todos los tests
+pnpm --filter emdash test           # solo el core
+pnpm --filter emdash test --watch   # modo watch para desarrollo activo
+pnpm test:e2e                       # Playwright end-to-end (requiere demo corriendo)
 ```
 
-Tests use real in-memory SQLite — no mocking. Each test gets a fresh database.
+Los tests usan SQLite en memoria — base de datos fresca por cada test, sin mocks.
 
-## Repository Layout
+---
+
+## Arquitectura clave — lo que necesitas entender
+
+- **El esquema vive en la base de datos**, no en el código. Las tablas `_emdash_collections` y `_emdash_fields` son la fuente de verdad. No hardcodees tipos de contenido.
+- **Tablas SQL reales** por colección (`ec_posts`, `ec_products`), no EAV. El contenido es consultable directamente con SQL estándar.
+- **Kysely para todas las queries**. Nunca interpolar strings en SQL — ver `AGENTS.md` para las reglas completas.
+- **Capa de handlers** (`api/handlers/*.ts`) contiene la lógica de negocio. Los archivos de rutas son wrappers delgados.
+- **Cadena de middleware**: inicialización del runtime → verificación de setup → autenticación → contexto del request.
+
+---
+
+## Agregar una migración de base de datos
+
+1. Crear `packages/core/src/database/migrations/NNN_descripcion.ts` con número de secuencia con ceros a la izquierda.
+2. Exportar funciones `up(db)` y `down(db)`.
+3. **Registrarla** en `packages/core/src/database/migrations/runner.ts` — las migraciones se importan estáticamente, no se autodescubren (compatibilidad con el bundler de Workers).
+
+---
+
+## Agregar una ruta de API
+
+1. Crear el archivo en `packages/core/src/astro/routes/api/`.
+2. Iniciar con `export const prerender = false;`.
+3. Usar `apiError()`, `handleError()`, `parseBody()` desde `#api/`.
+4. Verificar autorización con `requirePerm()` en todas las rutas que modifican estado.
+5. Registrar la ruta en `packages/core/src/astro/integration/routes.ts`.
+
+---
+
+## Limitaciones conocidas — no intentar resolver sin necesidad
+
+Estas son brechas documentadas del proyecto. No agregar código para resolverlas a menos que sea crítico para un proyecto de cliente:
+
+- **Rate limiting ausente** — no hay protección contra fuerza bruta en endpoints de autenticación. Mitigación temporal: activar Cloudflare proxy (plan gratuito) delante del sitio.
+- **Sin autenticación por contraseña** — solo passkeys, magic links y OAuth. Es una decisión de diseño del upstream.
+- **Almacenamiento de medios en Cloudflare pendiente** — R2 para uploads de archivos está en el roadmap. En modo Node.js los archivos se guardan en filesystem local.
+- **Marketplace de plugins** — la arquitectura existe pero la instalación en runtime es post-beta.
+
+---
+
+## Estructura del repositorio
 
 ```
-emdash/
+cms-cloudflare-workers-funnel-ibague/
 ├── packages/
-│   ├── core/              # emdash — the main package (Astro integration + APIs + admin)
-│   ├── auth/              # @emdash-cms/auth — passkeys, OAuth, magic links
-│   ├── admin/             # @emdash-cms/admin — React admin SPA
-│   ├── cloudflare/        # @emdash-cms/cloudflare — CF adapter + plugin sandbox
-│   ├── create-emdash/   # create-emdash — project scaffolder
-│   ├── gutenberg-to-portable-text/  # WP block → Portable Text converter
-│   └── plugins/           # first-party plugins (each dir = package)
+│   ├── core/              # paquete principal — integración Astro, APIs, admin UI, CLI
+│   ├── auth/              # autenticación — passkeys, OAuth, magic links
+│   ├── admin/             # SPA de administración en React
+│   ├── cloudflare/        # adaptador Cloudflare (D1, R2, Worker Loader, plugin sandbox)
+│   ├── create-emdash/     # scaffolder npm create emdash
+│   ├── gutenberg-to-portable-text/  # conversor de bloques WordPress → Portable Text
+│   └── plugins/           # plugins oficiales (SEO, formularios, embeds, audit-log...)
 ├── demos/
-│   ├── simple/            # emdash-demo — primary dev/test app (Node.js + SQLite)
-│   ├── cloudflare/        # Cloudflare Workers demo (D1)
-│   ├── plugins-demo/      # plugin development testbed
-│   └── ...
-├── templates/             # starter templates (blog, portfolio, marketing + cloudflare variants)
-├── docs/                  # public documentation site (Starlight)
-└── e2e/                   # Playwright test fixtures
+│   ├── simple/            # demo principal — Node.js + SQLite (sin Cloudflare)
+│   ├── cloudflare/        # demo Cloudflare Workers con D1
+│   ├── plugins-demo/      # entorno de prueba para desarrollo de plugins
+│   └── postgres/          # variante PostgreSQL
+├── templates/             # templates de inicio (blog, marketing, portfolio + variantes CF)
+├── docs/                  # sitio de documentación (Starlight)
+├── skills/                # skills de desarrollo asistido por IA
+└── e2e/                   # fixtures de tests Playwright
 ```
 
-The main package is **`packages/core`**. Most of your work will happen there.
+El paquete principal es **`packages/core`**. La mayoría del trabajo ocurre ahí.
 
-## Building Your Own Site (Inside the Monorepo)
+---
 
-The easiest way to build a real site during development is to add it as a workspace member.
+## Sincronización de templates y demos
 
-1. Copy `templates/blog/` (or `templates/blank/`) into `demos/`:
-
-   ```bash
-   cp -r templates/blog demos/my-site
-   ```
-
-2. Edit `demos/my-site/package.json` — set a unique `name` field.
-
-3. Run `pnpm install` from the root to link workspace dependencies.
-
-4. Start developing:
-
-   ```bash
-   pnpm --filter my-site dev
-   ```
-
-Your site will use `workspace:*` links to the local packages, so any changes you make to core will be reflected immediately (with watch mode).
-
-## Key Architectural Concepts
-
-- **Schema lives in the database**, not in code. `_emdash_collections` and `_emdash_fields` are the source of truth.
-- **Real SQL tables** per collection (`ec_posts`, `ec_products`), not EAV.
-- **Kysely** for all queries. Never interpolate into SQL -- see `AGENTS.md` for the full rules.
-- **Handler layer** (`api/handlers/*.ts`) holds business logic. Route files are thin wrappers.
-- **Middleware chain**: runtime init -> setup check -> auth -> request context.
-
-## Adding a Migration
-
-1. Create `packages/core/src/database/migrations/NNN_description.ts` (zero-padded sequence number).
-2. Export `up(db)` and `down(db)` functions.
-3. **Register it** in `packages/core/src/database/migrations/runner.ts` — migrations are statically imported, not auto-discovered (Workers bundler compatibility).
-
-## Adding an API Route
-
-1. Create the file in `packages/core/src/astro/routes/api/`.
-2. Start with `export const prerender = false;`.
-3. Use `apiError()`, `handleError()`, `parseBody()` from `#api/`.
-4. Check authorization with `requirePerm()` on all state-changing routes.
-5. Register the route in `packages/core/src/astro/integration/routes.ts`.
-
-## Contribution Policy
-
-### What we accept
-
-| Type             | Process                                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Bug fixes**    | Open a PR directly. Include a failing test that reproduces the bug.                                                                  |
-| **Docs / typos** | Open a PR directly.                                                                                                                  |
-| **Features**     | Open a [Discussion](https://github.com/emdash-cms/emdash/discussions/categories/ideas) first. Wait for approval before writing code. |
-| **Refactors**    | Open a Discussion first. Refactors are opinionated and need alignment.                                                               |
-| **Performance**  | Open a Discussion first with benchmarks showing the improvement.                                                                     |
-
-**PRs that add features without a prior approved Discussion will be closed.** This isn't about gatekeeping — it's about not wasting your time on work that might not align with the project's direction. Talk to us first and we'll figure out the right approach together.
-
-### AI-generated PRs
-
-We welcome AI-assisted contributions. They are held to the same quality bar as any other PR:
-
-- The submitter is responsible for the code's correctness, not the AI tool.
-- AI-generated PRs must pass all CI checks, follow the project's code patterns, and include tests.
-- The PR template has an AI disclosure checkbox — please check it. This isn't punitive; it helps reviewers know to pay extra attention to edge cases that AI tools commonly miss.
-- Bulk/spray PRs across the repo (e.g., "fix all lint warnings", "add types everywhere") will be closed. If you see a pattern worth fixing, open a Discussion first.
-
-### What we don't accept
-
-- **Drive-by feature additions.** If there's no Discussion, there's no PR.
-- **Speculative refactors** that don't solve a concrete problem.
-- **Dependency upgrades** outside of Renovate/Dependabot. We manage these centrally.
-- **"Improvements"** to code you haven't been asked to change (added logging, extra error handling, style changes in unrelated files).
-
-## Changesets
-
-Every PR that changes the behavior of a published package needs a **changeset** — a small Markdown file that describes the change for the CHANGELOG and determines the version bump. Without a changeset, the change won't trigger a package release.
-
-### When you need one
-
-- Bug fixes, features, refactors, or any other change that affects a published package's behavior or API.
-- Changes that span multiple packages need one changeset listing all affected packages.
-- If a PR makes more than one distinct change, add a separate changeset for each. Each one becomes its own CHANGELOG entry.
-
-### When you don't
-
-- Docs-only changes, test-only changes, CI/tooling changes, or changes to demo apps and templates (these are in the changeset ignore list).
-
-### How to add one
-
-Run from the repo root:
+Los templates y demos se mantienen en sincronía con scripts:
 
 ```bash
-pnpm changeset
+# Sincronizar template blog → demo simple (sincronización completa)
+bash scripts/sync-blog-demos.sh
+
+# Sincronizar variantes Cloudflare (mantiene archivos de config específicos del runtime)
+bash scripts/sync-cloudflare-templates.sh
 ```
 
-This walks you through selecting the affected package(s), the semver bump type, and a description. It creates a randomly-named `.md` file in `.changeset/`.
+Correr el script correspondiente después de editar archivos compartidos entre templates.
 
-You can also create one manually — see the existing files in `.changeset/` for the format.
-
-### Writing the description
-
-Start with a present-tense verb describing what the change does, as if completing "This PR...":
-
-- **Adds** — a new feature or capability
-- **Fixes** — a bug fix
-- **Updates** — an enhancement to existing behavior
-- **Removes** — removed functionality
-- **Refactors** — internal restructuring with no behavior change
-
-Focus on how the change affects someone **using** the package, not implementation details. The description ends up in the CHANGELOG, which people read once during upgrades.
-
-**Patch** (bug fixes, refactors, small improvements):
-
-```markdown
----
-"emdash": patch
 ---
 
-Fixes CLI `--json` flag so JSON output is clean. Log messages now go to stderr when `--json` is set.
-```
+## Recursos
 
-**Minor** (new features, non-breaking additions):
-
-```markdown
----
-"emdash": minor
----
-
-Adds `scheduled_at` field to content entries, enabling scheduled publishing via the admin UI.
-```
-
-**Major** (breaking changes) — include migration guidance:
-
-```markdown
----
-"emdash": major
----
-
-Removes the `legacyAuth` option from the integration config. All sites must use passkey authentication.
-
-To migrate, remove `legacyAuth: true` from your `emdash()` config in `astro.config.mjs`.
-```
-
-### Which packages?
-
-Only published packages need changesets. Demos, templates, docs, and test fixtures are excluded. The main packages are:
-
-- `emdash` (core)
-- `@emdash-cms/admin`, `@emdash-cms/auth`, `@emdash-cms/cloudflare`, `@emdash-cms/blocks`
-- `create-emdash`
-- First-party plugins (`@emdash-cms/plugin-*`)
-
-When in doubt, run `pnpm changeset` and it will only show packages that aren't ignored.
-
-## Commits and PRs
-
-- Branch from `main`.
-- Commit messages: describe _why_, not just _what_.
-- Fill out the PR template completely. PRs with an empty template will be closed.
-- Ensure `pnpm typecheck` and `pnpm --silent lint:json` pass before pushing.
-- Run relevant tests.
-
-## What's Intentionally Missing (For Now)
-
-These are known gaps -- don't try to fix them unless specifically asked:
-
-- **Rate limiting** -- no brute-force protection on auth endpoints
-- **Password auth** -- passkeys + magic links + OAuth only, by design
-- **Plugin marketplace** -- architecture exists, runtime installation is post-beta
-- **Real-time collaboration** -- planned for v1
-
-## Getting Help
-
-- Read `AGENTS.md` for architecture and code patterns
-- Check the [documentation site](https://docs.emdashcms.com) for guides and API reference
-- Open an issue or ask in the chat
+- `AGENTS.md` — arquitectura detallada y patrones de código para desarrollo asistido por IA
+- `TEMPLATES.md` — documentación de los templates disponibles
+- [Documentación upstream](https://docs.emdashcms.com) — referencia de API y guías del proyecto original
+- [tevezmarketing.digital](https://tevezmarketing.digital) — implementación productiva de referencia
