@@ -114,7 +114,6 @@ pnpm --filter emdash test            # core only
 pnpm --filter emdash test --watch    # watch mode
 pnpm test:e2e                          # Playwright (requires demo running)
 ```
-
 Tests use real in-memory SQLite — no mocking. Each test gets a fresh database.
 
 ## Repository Layout
