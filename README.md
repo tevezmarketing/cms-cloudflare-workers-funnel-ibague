@@ -205,7 +205,7 @@ docs/             Documentación (Starlight)
 Este es un monorepo gestionado con pnpm.
 
 ```bash
-git clone https://github.com/emdash-cms/emdash.git && cd emdash
+git clone https://github.com/tevezmarketing/cms-cloudflare-workers-funnel-ibague.git && cd cms-cloudflare-workers-funnel-ibague
 pnpm install
 pnpm build
 ```
