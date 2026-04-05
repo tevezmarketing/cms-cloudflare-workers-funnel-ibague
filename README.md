@@ -1,108 +1,93 @@
-# EmDash
+# EmDash — CMS Headless de Nueva Generación para Agencias y Desarrolladores
 
-A full-stack TypeScript CMS built on [Astro](https://astro.build/) and [Cloudflare](https://www.cloudflare.com/). EmDash takes the ideas that made WordPress dominant -- extensibility, admin UX, a plugin ecosystem -- and rebuilds them on serverless, type-safe foundations. Plugins run in sandboxed Worker isolates, solving the fundamental security problem with WordPress's plugin architecture.
+> **tevezmarketing.digital** — Plataforma CMS empresarial construida sobre tecnología serverless moderna. EmDash es la alternativa profesional a WordPress: TypeScript nativo, plugins sandboxeados y arquitectura Jamstack lista para producción.
 
-## Get Started
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/emdash-cms/templates/tree/main/blog-cloudflare)
+[![npm](https://img.shields.io/npm/v/emdash)](https://npmjs.com/package/emdash)
+[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
 
-> [!IMPORTANT]
-> EmDash depends on Dynamic Workers to run secure sandboxed plugins. Dynamic Workers are currently only available on paid accounts. [Upgrade your account](https://www.cloudflare.com/plans/developer-platform/) (starting at $5/mo) or comment out the `worker_loaders` block of your `wrangler.jsonc` configuration file to disable plugins.
+---
+
+## ¿Qué es EmDash?
+
+EmDash es un **CMS headless full-stack** construido sobre [Astro](https://astro.build/) y [Cloudflare Workers](https://workers.cloudflare.com/). Está diseñado para agencias digitales, desarrolladores y equipos de marketing que necesitan un sistema de gestión de contenidos de alto rendimiento, seguro y extensible — sin las limitaciones técnicas y de seguridad de WordPress.
+
+En **tevezmarketing.digital** utilizamos EmDash como base de nuestra infraestructura de contenidos para ofrecer sitios web ultrarrápidos, escalables y optimizados para SEO técnico.
+
+### Casos de uso principales
+
+- **Agencias de marketing digital** que gestionan múltiples sitios de clientes
+- **Equipos de contenido** que necesitan flujos editoriales estructurados
+- **Desarrolladores** que construyen sitios Jamstack con CMS visual
+- **Empresas** que migran desde WordPress sin perder contenido ni SEO
+
+---
+
+## Instalación rápida
+
+> **Requisito previo:** EmDash utiliza Dynamic Workers para ejecutar plugins en sandboxes seguros. Esta funcionalidad requiere una cuenta Cloudflare de pago (desde $5/mes). Puedes desactivar los plugins comentando el bloque `worker_loaders` en tu `wrangler.jsonc`.
 
 ```bash
 npm create emdash@latest
 ```
 
-Or deploy directly to your Cloudflare account:
+O despliega directamente en tu cuenta Cloudflare en un clic:
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/emdash-cms/templates/tree/main/blog-cloudflare)
 
-EmDash runs on Cloudflare (D1 + R2 + Workers) or any Node.js server with SQLite. No PHP, no separate hosting tier -- just deploy your Astro site.
+---
 
-## Templates
+## Por qué EmDash supera a WordPress en 2024
 
-EmDash ships with three starter templates:
+WordPress fue diseñado para una web distinta. Hoy, ejecutar WordPress implica gestionar PHP junto a JavaScript, apilar capas de caché para conseguir rendimiento aceptable y aceptar que el [96% de las vulnerabilidades de seguridad de WordPress provienen de plugins](https://patchstack.com/whitepaper/state-of-wordpress-security-in-2024/).
 
-<table>
-<tr>
-<td width="33%" valign="top">
+EmDash resuelve estos problemas desde la arquitectura:
 
-### Blog
+| Característica | WordPress | EmDash |
+|---|---|---|
+| Lenguaje | PHP + JS | TypeScript nativo |
+| Plugins | Acceso total al servidor | Sandboxeados (Worker isolates) |
+| Almacenamiento de contenido | HTML serializado | Portable Text (JSON estructurado) |
+| Rendimiento | Requiere caché | Edge-first, serverless |
+| Seguridad de plugins | Sin aislamiento | Manifiesto de capacidades declarado |
+| Integración con IA | No nativa | MCP Server incluido |
+| Escalabilidad | Vertical (servidor) | Global (Cloudflare Edge) |
 
-<a href="assets/templates/blog/latest/"><img src="assets/templates/blog/latest/homepage-light-desktop.jpg" alt="Blog template" width="100%"></a>
+---
 
-A classic blog with sidebar widgets, search, and RSS.
+## Características técnicas destacadas
 
-- Categories & tags
-- Full-text search
-- Comment-ready
-- RSS feed
-- Dark / light mode
+### Plugins sandboxeados — Seguridad sin compromiso
 
-</td>
-<td width="33%" valign="top">
+WordPress otorga a cada plugin acceso completo a la base de datos, el sistema de archivos y los datos de usuario. Un único plugin vulnerable puede comprometer todo el sitio.
 
-### Marketing
-
-<a href="assets/templates/marketing/latest/"><img src="assets/templates/marketing/latest/homepage-light-desktop.jpg" alt="Marketing template" width="100%"></a>
-
-A conversion-focused landing page with pricing and contact form.
-
-- Hero with CTAs
-- Feature grid
-- Pricing cards
-- FAQ and contact form
-- Dark / light mode
-
-</td>
-<td width="33%" valign="top">
-
-### Portfolio
-
-<a href="assets/templates/portfolio/latest/"><img src="assets/templates/portfolio/latest/work-light-desktop.jpg" alt="Portfolio template" width="100%"></a>
-
-A visual portfolio for showcasing creative work.
-
-- Project grid
-- Tag filtering
-- Case study pages
-- RSS feed
-- Dark / light mode
-<br /><br />
-</td>
-</tr>
-</table>
-
-## Why EmDash?
-
-**WordPress was built for a different era.** Running WordPress today means managing PHP alongside JavaScript, layering caches to get acceptable performance, and knowing that [96% of WordPress security vulnerabilities come from plugins](https://patchstack.com/whitepaper/state-of-wordpress-security-in-2024/). EmDash is what WordPress would look like if you started from scratch with today's tools.
-
-**Sandboxed plugins.** WordPress plugins have full access to the database, filesystem, and user data. A single vulnerable plugin can compromise the entire site. EmDash plugins run in isolated [Worker sandboxes](https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/) via Dynamic Worker Loaders, each with a declared capability manifest. A plugin that requests `read:content` and `email:send` can do exactly that and nothing else.
+EmDash ejecuta los plugins en [Worker sandboxes](https://developers.cloudflare.com/workers/runtime-apis/bindings/worker-loader/) aislados mediante Dynamic Worker Loaders. Cada plugin declara exactamente qué capacidades necesita — y solo puede hacer eso:
 
 ```typescript
 export default () =>
-	definePlugin({
-		id: "notify-on-publish",
-		capabilities: ["read:content", "email:send"],
-		hooks: {
-			"content:afterSave": async (event, ctx) => {
-				if (event.content.status !== "published") return;
-				await ctx.email.send({
-					to: "editors@example.com",
-					subject: `New post: ${event.content.title}`,
-				});
-			},
-		},
-	});
+  definePlugin({
+    id: "notify-on-publish",
+    capabilities: ["read:content", "email:send"],
+    hooks: {
+      "content:afterSave": async (event, ctx) => {
+        if (event.content.status !== "published") return;
+        await ctx.email.send({
+          to: "editors@example.com",
+          subject: `Nueva publicación: ${event.content.title}`,
+        });
+      },
+    },
+  });
 ```
 
-**Structured content, not serialized HTML.** WordPress stores rich text as HTML with metadata embedded in comments -- tying your content to its DOM representation. EmDash uses [Portable Text](https://www.portabletext.org/), a structured JSON format that decouples content from presentation. Your content can render as a web page, a mobile app, an email, or an API response without parsing HTML.
+### Contenido estructurado con Portable Text
 
-**Built for agents.** EmDash ships with agent skills for building plugins and themes, a CLI that lets agents manage content and schema programmatically, and a built-in [MCP server](https://modelcontextprotocol.io/) so AI tools like Claude and ChatGPT can interact with your site directly.
+WordPress almacena el contenido enriquecido como HTML con metadatos embebidos en comentarios, vinculando el contenido a su representación DOM.
 
-**Runs anywhere.** EmDash uses portable abstractions at every layer -- Kysely for SQL, S3 API for storage -- that work with SQLite, D1, Turso, PostgreSQL, R2, AWS S3, or local files. It runs best on Cloudflare, but it's not locked to it.
+EmDash usa [Portable Text](https://www.portabletext.org/), un formato JSON estructurado que desacopla el contenido de la presentación. El mismo contenido puede renderizarse como página web, app móvil, email o respuesta de API — sin parsear HTML.
 
-## How It Works
-
-EmDash is an Astro integration. Add it to your config and you get a complete CMS: admin panel, REST API, authentication, media library, and plugin system.
+### Arquitectura serverless lista para el Edge
 
 ```typescript
 // astro.config.mjs
@@ -110,17 +95,19 @@ import emdash from "emdash/astro";
 import { d1 } from "emdash/db";
 
 export default defineConfig({
-	integrations: [emdash({ database: d1() })],
+  integrations: [emdash({ database: d1() })],
 });
 ```
 
-Content types are defined in the database, not in code. Non-developers create and modify collections through the admin UI. Each collection gets a real SQL table with typed columns. Developers generate TypeScript types from the live schema:
+### TypeScript de extremo a extremo
+
+Los tipos se generan desde el esquema vivo de la base de datos — no desde código hardcodeado:
 
 ```bash
 npx emdash types
 ```
 
-Query content using Astro's Live Collections -- no rebuilds, no separate API:
+### Consulta de contenido sin rebuilds
 
 ```astro
 ---
@@ -131,42 +118,91 @@ const { entries: posts } = await getEmDashCollection("posts");
 {posts.map((post) => <article>{post.data.title}</article>)}
 ```
 
-## Features
+---
 
-**Content** -- Blog posts, pages, custom content types. Rich text editing via TipTap with Portable Text storage. Revisions, drafts, scheduled publishing, full-text search (FTS5), inline visual editing.
+## Templates de inicio profesionales
 
-**Admin** -- Full admin panel with visual schema builder, media library (drag-drop uploads via signed URLs), navigation menus, taxonomies, widgets, and a WordPress import wizard.
+EmDash incluye tres templates listos para producción:
 
-**Auth** -- Passkey-first (WebAuthn) with OAuth and magic link fallbacks. Role-based access control: Administrator, Editor, Author, Contributor.
+### Blog profesional
+Sidebar con widgets, búsqueda full-text y RSS. Incluye categorías, etiquetas, comentarios y modo oscuro/claro.
 
-**Plugins** -- `definePlugin()` API with lifecycle hooks, KV storage, settings, admin pages, dashboard widgets, custom block types, and API routes. Sandboxed execution on Cloudflare via Dynamic Worker Loaders.
+### Landing page de marketing
+Página de conversión con hero, grid de características, precios, FAQ y formulario de contacto. Optimizada para conversión y SEO on-page.
 
-**Agents** -- Skill files for AI-assisted plugin and theme development. CLI for programmatic site management. Built-in MCP server for direct AI tool integration.
+### Portfolio creativo
+Grid de proyectos con filtrado por etiquetas, páginas de caso de estudio y RSS. Ideal para agencias y freelancers.
 
-**WordPress migration** -- Import posts, pages, media, and taxonomies from WXR exports, the WordPress REST API, or WordPress.com. Agent skills help port plugins and themes.
+---
 
-## Portable Platforms
+## Integración nativa con Inteligencia Artificial
 
-| Layer    | Cloudflare                  | Also works with                                     |
-| -------- | --------------------------- | --------------------------------------------------- |
-| Database | D1                          | SQLite, Turso/libSQL, PostgreSQL                    |
-| Storage  | R2                          | AWS S3, any S3-compatible service, local filesystem |
-| Sessions | KV                          | Redis, file-based                                   |
-| Plugins  | Worker isolates (sandboxed) | In-process (safe mode)                              |
+EmDash es el primer CMS diseñado con IA como ciudadana de primera clase:
 
-## Status
+- **MCP Server integrado** — Conecta Claude, ChatGPT y otros asistentes directamente a tu sitio
+- **CLI para agentes** — Gestión programática de contenido y esquemas
+- **Skills para desarrollo** — Archivos de habilidades para desarrollo asistido de plugins y temas
 
-EmDash is in **beta preview**. We welcome contributions, feedback, plugins, themes, and ideas.
+---
 
-```bash
-npm create emdash@latest
+## Compatibilidad de plataformas
+
+EmDash funciona en Cloudflare y en cualquier servidor Node.js. Sin PHP, sin tier de hosting separado.
+
+| Capa | Cloudflare (recomendado) | Alternativas compatibles |
+|---|---|---|
+| Base de datos | D1 | SQLite, Turso/libSQL, PostgreSQL |
+| Almacenamiento | R2 | AWS S3, S3-compatible, filesystem local |
+| Sesiones | KV | Redis, basado en archivos |
+| Plugins | Worker isolates (sandboxed) | In-process (modo seguro) |
+
+---
+
+## Migración desde WordPress
+
+EmDash incluye un **asistente de migración WordPress** que importa posts, páginas, medios y taxonomías desde:
+
+- Exportaciones WXR
+- WordPress REST API
+- WordPress.com
+
+Los skills de IA ayudan a portar plugins y temas existentes.
+
+---
+
+## Funcionalidades completas del CMS
+
+**Gestión de contenido** — Posts, páginas, tipos de contenido personalizados. Edición de texto enriquecido con TipTap y almacenamiento Portable Text. Revisiones, borradores, publicación programada, búsqueda full-text (FTS5) y edición visual inline.
+
+**Panel de administración** — Panel completo con constructor visual de esquemas, biblioteca multimedia (subidas drag-drop con URLs firmadas), menús de navegación, taxonomías, widgets e importador de WordPress.
+
+**Autenticación empresarial** — Passkeys (WebAuthn) como método principal, con OAuth y magic links como alternativa. Control de acceso basado en roles: Administrador, Editor, Autor, Colaborador.
+
+**Sistema de plugins** — API `definePlugin()` con hooks de ciclo de vida, almacenamiento KV, configuración, páginas de admin, widgets de dashboard, tipos de bloques personalizados y rutas de API. Ejecución sandboxeada en Cloudflare.
+
+---
+
+## Estructura del repositorio
+
+```
+packages/
+  core/           Integración Astro, APIs, admin UI, CLI
+  auth/           Biblioteca de autenticación
+  blocks/         Definiciones de bloques Portable Text
+  cloudflare/     Adaptador Cloudflare (D1, R2, Worker Loader)
+  plugins/        Plugins oficiales (formularios, embeds, SEO, audit-log…)
+  create-emdash/  Scaffolding npm create emdash
+
+templates/        Templates de inicio (blog, marketing, portfolio)
+demos/            Sitios de desarrollo y ejemplos
+docs/             Documentación (Starlight)
 ```
 
-See the [documentation](https://github.com/emdash-cms/emdash/tree/main/docs) for guides, API reference, and plugin development.
+---
 
-## Development
+## Desarrollo y contribución
 
-This is a pnpm monorepo. To contribute:
+Este es un monorepo gestionado con pnpm.
 
 ```bash
 git clone https://github.com/emdash-cms/emdash.git && cd emdash
@@ -174,37 +210,36 @@ pnpm install
 pnpm build
 ```
 
-Run the demo (Node.js + SQLite, no Cloudflare account needed):
+Demo local (Node.js + SQLite, sin cuenta Cloudflare):
 
 ```bash
 pnpm --filter emdash-demo seed
 pnpm --filter emdash-demo dev
 ```
 
-Open the admin at [http://localhost:4321/\_emdash/admin](http://localhost:4321/_emdash/admin).
+Panel de administración: [http://localhost:4321/\_emdash/admin](http://localhost:4321/_emdash/admin)
 
 ```bash
-pnpm test          # run all tests
-pnpm typecheck     # type check
-pnpm lint:quick    # fast lint (< 1s)
-pnpm format        # format with oxfmt
+pnpm test          # ejecutar todos los tests
+pnpm typecheck     # verificación de tipos
+pnpm lint:quick    # linting rápido (< 1s)
+pnpm format        # formatear con oxfmt
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para la guía completa de contribución.
 
-## Repository Structure
+---
 
+## Estado del proyecto
+
+EmDash está en **beta preview**. Aceptamos contribuciones, feedback, plugins, temas e ideas de la comunidad.
+
+```bash
+npm create emdash@latest
 ```
-packages/
-  core/           Astro integration, APIs, admin UI, CLI
-  auth/           Authentication library
-  blocks/         Portable Text block definitions
-  cloudflare/     Cloudflare adapter (D1, R2, Worker Loader)
-  plugins/        First-party plugins (forms, embeds, SEO, audit-log, etc.)
-  create-emdash/  npm create emdash scaffolding
-  gutenberg-to-portable-text/  WordPress block converter
 
-templates/        Starter templates (blog, marketing, portfolio, starter, blank)
-demos/            Development and example sites
-docs/             Documentation site (Starlight)
-```
+Documentación completa, guías y referencia de API: [github.com/emdash-cms/emdash/docs](https://github.com/emdash-cms/emdash/tree/main/docs)
+
+---
+
+*EmDash es desarrollado y mantenido por el equipo de [tevezmarketing.digital](https://tevezmarketing.digital) — especialistas en arquitectura web moderna, marketing digital y soluciones CMS empresariales para Colombia y Latinoamérica.*
